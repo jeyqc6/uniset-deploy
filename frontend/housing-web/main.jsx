@@ -9,7 +9,7 @@ import PropertyProfile from './pages/PropertyProfile';
 import RoommateMatchPage from './pages/RoommateMatchPage';
 import EditPropertyPage from './pages/edit-property';
 
-// 注册组件到全局 window 对象
+// register components to global window object
 window.HomePage = HomePage;
 window.LoginPage = LoginPage;
 window.RegisterPage = RegisterPage;

@@ -21,11 +21,11 @@ def create_property(
     db: Session = Depends(get_db)
 ):
     """Create a new property listing"""
-    # 检查用户是否为房东
+    # check if user is landlord
     if current_user.user_type != "landlord":
         raise HTTPException(status_code=403, detail="Only landlords can create properties")
     
-    # 获取房东资料
+    # get landlord profile
     landlord_profile = db.query(LandlordProfile).filter(
         LandlordProfile.user_id == current_user.id
     ).first()
@@ -33,7 +33,7 @@ def create_property(
     if not landlord_profile:
         raise HTTPException(status_code=404, detail="Landlord profile not found")
     
-    # 创建新房产
+    # create new property
     new_property = Property(
         **property_data.dict(),
         landlord_id=landlord_profile.id
@@ -126,16 +126,16 @@ def delete_property(
 async def upload_property_images(
     property_id: int,
     files: List[UploadFile] = File(...),
-    is_primary: bool = Form(False),  # 是否将第一张设为主图
+    is_primary: bool = Form(False),  # whether to set the first image as primary
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """Upload multiple property images"""
-    # 验证用户是否为房东
+    # check if user is landlord
     if current_user.user_type != "landlord":
         raise HTTPException(status_code=403, detail="Only landlord can upload images")
     
-    # 验证房产是否存在且属于当前房东
+    # check if property exists and belongs to current landlord
     property = db.query(Property).filter(Property.id == property_id).first()
     if not property:
         raise HTTPException(status_code=404, detail= f"Property {property_id} not exists")
@@ -146,23 +146,23 @@ async def upload_property_images(
     
     uploaded_images = []
     
-    # 处理多张图片上传
+    # process multiple images upload
     for i, file in enumerate(files):
         try:
-            # 读取图片数据用于分析
+            # read image data for analysis
             image_data = await file.read()
-            await file.seek(0)  # 重置文件指针
+            await file.seek(0)  # reset file pointer
             
-            # 分析图片特征
+            # analyze image features
             analysis_result = image_service.analyze_property_listing_image(image_data)
             
-            # 上传到S3
+            # upload to S3
             image_url = await storage_service.upload_image(file, property_id, landlord_profile.id)
             
-            # 如果是第一张图片且is_primary为True，或者这是房产的第一张图片，则设为主图
+            # if it's the first image and is_primary is True, or it's the first image of the property, set it as primary
             set_as_primary = False
-            if i == 0 and is_primary:  # 第一张图片且要求设为主图
-                # 将之前的主图(如果有)设为非主图
+            if i == 0 and is_primary:  # the first image and is_primary is True
+                # set the previous primary image to non-primary
                 existing_primary = db.query(PropertyImage).filter(
                     PropertyImage.property_id == property_id,
                     PropertyImage.is_primary == True
@@ -173,10 +173,10 @@ async def upload_property_images(
                     
                 set_as_primary = True
             elif db.query(PropertyImage).filter(PropertyImage.property_id == property_id).count() == 0:
-                # 如果这是房产的第一张图片，自动设为主图
+                # if it's the first image of the property, set it as primary
                 set_as_primary = True
             
-            # 创建新的图片记录
+            # create new image record
             property_image = PropertyImage(
                 property_id=property_id,
                 image_url=image_url,
@@ -185,9 +185,9 @@ async def upload_property_images(
             )
             
             db.add(property_image)
-            db.flush()  # 获取ID但不提交
+            db.flush()  # get ID but not commit
             
-            # 如果是主图，更新房产的主图URL
+            # if it's primary, update the property's primary image URL
             if set_as_primary:
                 property.image_url = image_url
             
@@ -205,7 +205,7 @@ async def upload_property_images(
                 detail=f"上传图片失败: {str(e)}"
             )
     
-    # 提交所有更改
+    # commit all changes
     db.commit()
     
     return {
@@ -214,13 +214,13 @@ async def upload_property_images(
         "images": uploaded_images
     }
 
-# 添加一个端点来获取房产的所有图片
+# add an endpoint to get all property images
 @router.get("/{property_id}/images", response_model=List[dict])
 async def get_property_images(
     property_id: int,
     db: Session = Depends(get_db)
 ):
-    """获取房产的所有图片"""
+    """Get all property images"""
     property = db.query(Property).filter(Property.id == property_id).first()
     if not property:
         raise HTTPException(status_code=404, detail= f"Property {property_id} not exists")
@@ -239,7 +239,7 @@ async def get_property_images(
         for image in images
     ]
 
-# 添加一个端点来删除房产图片
+# add an endpoint to delete property images
 @router.delete("/{property_id}/images/{image_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_property_image(
     property_id: int,
@@ -248,11 +248,11 @@ async def delete_property_image(
     db: Session = Depends(get_db)
 ):
     """Delete property images"""
-    # 验证用户是否为房东
+    # check if user is landlord
     if current_user.user_type != "landlord":
         raise HTTPException(status_code=403, detail="Only landlord can delete properties images")
     
-    # 验证房产是否存在且属于当前房东
+    # check if property exists and belongs to current landlord
     property = db.query(Property).filter(Property.id == property_id).first()
     if not property:
         raise HTTPException(status_code=404, detail=f"Property {property_id} not exists")
@@ -261,7 +261,7 @@ async def delete_property_image(
     if not landlord_profile or property.landlord_id != landlord_profile.id:
         raise HTTPException(status_code=403, detail="Not authorized to delete images (you are not the landlord of this properties)")
     
-    # 查找要删除的图片
+    # find the image to delete
     image = db.query(PropertyImage).filter(
         PropertyImage.id == image_id,
         PropertyImage.property_id == property_id
@@ -270,9 +270,9 @@ async def delete_property_image(
     if not image:
         raise HTTPException(status_code=404, detail=f"Property {image_id} not exists")
     
-    # 如果删除的是主图，需要选择另一张作为主图
+    # if the image to delete is the primary, need to select another image as primary
     if image.is_primary:
-        # 查找其他图片
+        # find other images
         other_image = db.query(PropertyImage).filter(
             PropertyImage.property_id == property_id,
             PropertyImage.id != image_id
@@ -284,13 +284,13 @@ async def delete_property_image(
         else:
             property.image_url = None
     
-    # 删除图片记录
+    # delete image record
     db.delete(image)
     db.commit()
     
     return None
 
-# 添加一个端点来设置主图
+# add an endpoint to set primary image
 @router.put("/{property_id}/images/{image_id}/primary", response_model=dict)
 async def set_primary_image(
     property_id: int,
@@ -299,11 +299,11 @@ async def set_primary_image(
     db: Session = Depends(get_db)
 ):
     """Set certain image to be primary images"""
-    # 验证用户是否为房东
+    # check if user is landlord
     if current_user.user_type != "landlord":
         raise HTTPException(status_code=403, detail="Only landlord can set primary image")
     
-    # 验证房产是否存在且属于当前房东
+    # check if property exists and belongs to current landlord
     property = db.query(Property).filter(Property.id == property_id).first()
     if not property:
         raise HTTPException(status_code=404, detail=f"Property {property_id} not exists")
@@ -312,7 +312,7 @@ async def set_primary_image(
     if not landlord_profile or property.landlord_id != landlord_profile.id:
         raise HTTPException(status_code=403, detail="Not authorize to set property primary images")
     
-    # 找到要设置为主图的图片
+    # find the image to set as primary
     new_primary = db.query(PropertyImage).filter(
         PropertyImage.id == image_id,
         PropertyImage.property_id == property_id
@@ -321,7 +321,7 @@ async def set_primary_image(
     if not new_primary:
         raise HTTPException(status_code=404, detail=f"Image {image_id} not exists")
     
-    # 将当前的主图设置为非主图
+    # set the current primary image to non-primary
     current_primary = db.query(PropertyImage).filter(
         PropertyImage.property_id == property_id,
         PropertyImage.is_primary == True
@@ -330,7 +330,7 @@ async def set_primary_image(
     if current_primary:
         current_primary.is_primary = False
     
-    # 设置新的主图
+    # set the new primary image
     new_primary.is_primary = True
     property.image_url = new_primary.image_url
     

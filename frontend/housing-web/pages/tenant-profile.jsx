@@ -14,7 +14,7 @@ const TenantProfile = () => {
     const fetchProfileData = async () => {
       try {
         setLoading(true);
-        // 获取用户基本信息、租客资料和偏好设置
+        // get user basic information, tenant information and preferences
         const [userData, tenantData, preferencesData] = await Promise.all([
           getUserProfile(),
           checkTenantProfile(),
@@ -62,7 +62,7 @@ const TenantProfile = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 py-8">
-      {/* 顶部导航栏 */}
+      {/* top navigation bar */}
       <div className="fixed top-0 left-0 right-0 bg-white shadow z-50">
         <div className="max-w-6xl mx-auto flex items-center justify-between px-4 py-3">
           <h1 
@@ -110,7 +110,7 @@ const TenantProfile = () => {
 
       <div className="max-w-4xl mx-auto px-4 mt-16">
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-          {/* 个人资料头部 */}
+          {/* personal information header */}
           <div className="relative h-48 bg-gradient-to-r from-gray-800 to-black">
             <div className="absolute -bottom-16 left-8">
               <div className="w-32 h-32 rounded-full border-4 border-white bg-white shadow-lg overflow-hidden">
@@ -123,7 +123,7 @@ const TenantProfile = () => {
             </div>
           </div>
 
-          {/* 个人信息部分 */}
+          {/* personal information section */}
           <div className="pt-20 px-8 pb-8">
             <div className="flex justify-between items-start">
               <div>
@@ -159,7 +159,7 @@ const TenantProfile = () => {
               </div>
             </div>
 
-            {/* 偏好设置部分 */}
+            {/* preferences section */}
             <div className="mt-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">My Preferences</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -197,7 +197,7 @@ const TenantProfile = () => {
               </div>
             </div>
 
-            {/* 账户信息 */}
+            {/* account information */}
             <div className="mt-8 border-t pt-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-4 text-center">Account Information</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

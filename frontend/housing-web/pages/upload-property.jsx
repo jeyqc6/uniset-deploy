@@ -1,10 +1,10 @@
 import React, { useState, useRef } from "react";
 import axios from "axios";
-import { createProperty, uploadPropertyImage } from "../src/api"; // 引入封装的 API 方法
-import { useNavigate } from "react-router-dom"; // 添加 useNavigate
+import { createProperty, uploadPropertyImage } from "../src/api"; // import the API methods
+import { useNavigate } from "react-router-dom"; // add useNavigate
 
 const UploadProperty = () => {
-  const navigate = useNavigate(); // 添加导航 hook
+  const navigate = useNavigate(); // add navigation hook
   const fileInputRef = useRef(null);
   const [selectedImage, setSelectedImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
@@ -18,36 +18,36 @@ const UploadProperty = () => {
     bathrooms: "1",
     area: "",
     address: "",
-    city: "Pittsburgh", // 固定值
+    city: "Pittsburgh", // fixed value
   });
 
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
-  // 处理图片选择
+  // handle image selection
   const handleImageSelect = (e) => {
     const file = e.target.files[0];
     if (file) {
       setSelectedImage(file);
-      // 创建预览URL
+      // create preview URL
       const previewUrl = URL.createObjectURL(file);
       setImagePreview(previewUrl);
     }
   };
 
-  // 触发文件选择
+  // trigger file selection
   const handleUploadClick = () => {
     fileInputRef.current.click();
   };
 
-  // 处理表单输入
+  // handle form input
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  // 提交表单
+  // submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -55,7 +55,7 @@ const UploadProperty = () => {
     setSuccessMessage("");
 
     try {
-      // 1. 获取地理位置信息
+      // 1. get geolocation information
       const geoResponse = await axios.get(
         `https://nominatim.openstreetmap.org/search?format=json&q=${formData.address},${formData.city}`
       );
@@ -65,7 +65,7 @@ const UploadProperty = () => {
         throw new Error("Unable to fetch geolocation. Please check the address.");
       }
 
-      // 2. 构建房产数据
+      // 2. build property data
       const propertyData = {
         ...formData,
         price: parseFloat(formData.price),
@@ -77,15 +77,15 @@ const UploadProperty = () => {
         labels: [],
       };
 
-      // 3. 创建房产信息
+      // 3. create property information
       const propertyResponse = await createProperty(propertyData);
       setSuccessMessage("Property information saved successfully!");
 
-      // 4. 如果有选择图片，上传图片
+      // 4. if there is a selected image, upload the image
       if (selectedImage && propertyResponse.id) {
         setUploadingImage(true);
         try {
-          // 使用 API 函数上传图片
+          // use API function to upload image
           await uploadPropertyImage(selectedImage, propertyResponse.id);
           setSuccessMessage("Property and image uploaded successfully!");
         } catch (imageError) {
@@ -96,7 +96,7 @@ const UploadProperty = () => {
         }
       }
 
-      // 5. 延迟跳转到 landlord profile 页面
+      // 5. delay to navigate to landlord profile page
       setTimeout(() => {
         navigate("/landlord-profile");
       }, 1500);
@@ -114,7 +114,7 @@ const UploadProperty = () => {
       <div className="w-full max-w-2xl p-6 bg-white rounded-lg shadow-md">
         <h2 className="mb-6 text-xl font-bold text-center">Upload Property</h2>
         <form onSubmit={handleSubmit}>
-          {/* 图片上传区域 */}
+          {/* image upload area */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Property Image

@@ -11,8 +11,8 @@ from app.config import settings
 
 router = APIRouter()
 
-# 需要添加 Token 的导入或定义
-from app.schemas import Token  # 添加这一行导入 Token 模型
+
+from app.schemas import Token  
 
 '''
 @router.post("/register", response_model=User)
@@ -44,10 +44,10 @@ def register_user(user: UserCreate, db: Session = Depends(get_db)):
     return db_user
 '''
 
-# 修改注册函数
+# modify register function
 @router.post("/register", response_model=schemas.User)
 def register_user(user_data: schemas.UserCreate, db: Session = Depends(get_db)):
-    # 检查邮箱是否已注册
+    # check if email is already registered
     db_user = db.query(User).filter(User.email == user_data.email).first()
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")

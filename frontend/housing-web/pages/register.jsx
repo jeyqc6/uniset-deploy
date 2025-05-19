@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { registerUser } from "../src/api"; // 假设有 API 方法用于注册
+import { registerUser } from "../src/api";
 
 const RegisterPage = () => {
   const [email, setEmail] = useState("");
@@ -17,7 +17,7 @@ const RegisterPage = () => {
     setErrorMessage("");
     setSuccessMessage("");
 
-    // 验证密码和确认密码是否匹配
+    // validate if password and confirm password match
     if (password !== confirmPassword) {
       setErrorMessage("Passwords do not match!");
       return;
@@ -32,22 +32,22 @@ const RegisterPage = () => {
     };
 
     try {
-      // 调用注册 API，将用户数据提交
+      // call register API, submit user data
       await registerUser(userData);
 
-      // 设置成功消息
+      // set success message
       setSuccessMessage("Registration successful! Redirecting to login...");
 
-      // 跳转到登录页面
+      // redirect to login page
       setTimeout(() => {
         navigate("/login");
-      }, 1000); // 延迟 2 秒跳转
+      }, 1000); // delay 2 seconds to redirect
     } catch (error) {
       console.error("Backend error response:", error.response?.data);
       if (error.response && error.response.data) {
         const backendError = error.response.data.detail;
         if (Array.isArray(backendError)) {
-          // 如果后端返回多个错误，拼接显示
+          // if backend returns multiple errors, concatenate and display
           setErrorMessage(backendError.map((err) => err.msg).join(", "));
         } else if (typeof backendError === "string") {
           // if back end returns a string error
@@ -75,7 +75,7 @@ const RegisterPage = () => {
 
       <div className="register-form">
         <form onSubmit={handleSubmit}>
-          {/* Email 输入框 */}
+          {/* Email input box */}
           <div className="form-group">
             <label htmlFor="email">Email</label>
             <input
@@ -88,7 +88,7 @@ const RegisterPage = () => {
             />
           </div>
 
-          {/* Username 输入框 */}
+          {/* Username input box */}
           <div className="form-group">
             <label htmlFor="username">Username</label>
             <input
@@ -101,7 +101,7 @@ const RegisterPage = () => {
             />
           </div>
 
-          {/* Password 输入框 */}
+          {/* Password input box */}
           <div className="form-group">
             <label htmlFor="password">Password</label>
             <input
@@ -114,7 +114,7 @@ const RegisterPage = () => {
             />
           </div>
 
-          {/* Confirm Password 输入框 */}
+          {/* Confirm Password input box */}
           <div className="form-group">
             <label htmlFor="confirmPassword">Confirm Password</label>
             <input
@@ -127,7 +127,7 @@ const RegisterPage = () => {
             />
           </div>
 
-          {/* 用户类型选择 */}
+          {/* user type selection */}
           <div className="form-group">
             <label>I am</label>
             <div className="radio-group">
@@ -155,7 +155,7 @@ const RegisterPage = () => {
           </div>
 
 
-          {/* 注册按钮 */}
+          {/* register button */}
           <button
             type="submit"
             className="register-button"
@@ -167,7 +167,7 @@ const RegisterPage = () => {
 
         </form>
 
-        {/* 成功或错误消息 */}
+        {/* success or error message */}
         {successMessage && <p className="success-message">{successMessage}</p>}
         {errorMessage && <p className="error-message">{errorMessage}</p>}
       </div>

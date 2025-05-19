@@ -12,21 +12,21 @@ const api = axios.create({
     },
 });
 
-// === 这里添加响应拦截器 ===
+// interceptor for response
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (
       error.response &&
       error.response.status === 401 &&
-      // 可选：只针对认证相关接口
+      // optional: only for authentication related interfaces
       (error.response.data?.detail === "Could not validate credentials" ||
         error.response.data?.detail === "Not authenticated" ||
         error.response.data?.detail === "Unauthorized")
     ) {
-      // 清除本地 token
+      // clear local token
       localStorage.removeItem("authToken");
-      // 跳转到登录页
+      // redirect to login page
       window.location.href = "/login";
     }
     // 其他错误继续抛出
@@ -444,7 +444,7 @@ export const updateProperty = async (propertyId, propertyData) => {
   const response = await api.put(`${API_PREFIX}/properties/${propertyId}`, propertyData, {
     headers: {
       Authorization: token,
-      // "Content-Type": "application/json", // Axios 会自动为 JSON 对象设置
+      // "Content-Type": "application/json", 
     },
   });
   return response.data;

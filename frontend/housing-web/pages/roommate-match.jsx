@@ -3,19 +3,19 @@ import { getConversations, getMessages, sendMessage, getUserDetails } from "../s
 import { useParams, useNavigate } from "react-router-dom";
 
 const ChatPage = () => {
-  const { roommateId } = useParams(); // 从 URL 提取用户 ID
+  const { roommateId } = useParams(); // extract user ID from URL
   const navigate = useNavigate();
   const messagesEndRef = useRef(null);
-  const [conversations, setConversations] = useState([]); // 会话列表
-  const [messages, setMessages] = useState([]); // 当前聊天记录
+  const [conversations, setConversations] = useState([]); // conversation list
+  const [messages, setMessages] = useState([]); // current chat record
   const [selectedUser, setSelectedUser] = useState(null); // Initialize as null
-  const [newMessage, setNewMessage] = useState(""); // 新消息内容
+  const [newMessage, setNewMessage] = useState(""); // new message content
   const [loading, setLoading] = useState({
     conversations: true,
     messages: false,
     userDetails: false
-  }); // 细分加载状态
-  const [error, setError] = useState(null); // 错误信息
+  }); //细分加载状态
+  const [error, setError] = useState(null); // error message
   const [authChecked, setAuthChecked] = useState(false);
   const [userType, setUserType] = useState("tenant"); // Added for the new button
 
@@ -25,7 +25,7 @@ const ChatPage = () => {
     : rawToken;
   const wsRef = useRef(null);
   const [ws, setWS] = useState(null);
-  // 检查认证状态
+  // check authentication status
   useEffect(() => {
     const authToken = localStorage.getItem("authToken");
     if (!authToken) {
@@ -34,7 +34,7 @@ const ChatPage = () => {
     setAuthChecked(true);
   }, [navigate, roommateId]);
 
-  // 加载会话列表和初始化选中的用户
+  // load conversation list and initialize selected user
   useEffect(() => {
     const fetchConversations = async () => {
       if (!authChecked) return; // Wait for auth check
@@ -43,12 +43,12 @@ const ChatPage = () => {
         setLoading(prev => ({ ...prev, conversations: true }));
         setError(null);
         const response = await getConversations();
-        console.log("Conversations response:", response); // 添加调试日志
+        console.log("Conversations response:", response); // add debug log
         
         if (response && Array.isArray(response)) {
           let updatedConversations = [...response];
 
-          // 如果 URL 中的 roommateId 存在
+          // if roommateId exists in URL
           if (roommateId) {
             const existingUser = response.find(
               (conv) => conv.user_id.toString() === roommateId.toString()
@@ -57,7 +57,7 @@ const ChatPage = () => {
               try {
                 setLoading(prev => ({ ...prev, userDetails: true }));
                 const userDetails = await getUserDetails(roommateId);
-                console.log("User details:", userDetails); // 添加调试日志
+                console.log("User details:", userDetails); // add debug log
                 const newConversation = {
                   user_id: roommateId,
                   username: userDetails.username || `User ${roommateId}`,
@@ -84,7 +84,7 @@ const ChatPage = () => {
             setSelectedUser(updatedConversations[0].user_id);
           }
           
-          // 处理现有会话的头像路径
+          // handle existing conversation avatar path
           updatedConversations = updatedConversations.map(conv => ({
             ...conv,
             avatar_url: conv.avatar_url ? 
@@ -92,7 +92,7 @@ const ChatPage = () => {
               : "/head.png"
           }));
 
-          console.log("Updated conversations:", updatedConversations); // 添加调试日志
+          console.log("Updated conversations:", updatedConversations); // add debug log
           setConversations(updatedConversations);
         }
       } catch (error) {
@@ -143,7 +143,7 @@ const ChatPage = () => {
     }
 
     return () => {
-      // 只在连接是 OPEN 状态时关闭
+      // only close when connection is OPEN
       if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
         wsRef.current.close();
       }
@@ -155,7 +155,7 @@ const ChatPage = () => {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages]);
-  // 加载与选中用户的消息记录
+  // load messages for selected user
   useEffect(() => {
     const fetchMessages = async () => {
       if (!selectedUser || !authChecked) return;
@@ -184,7 +184,7 @@ const ChatPage = () => {
   }, [selectedUser, navigate, authChecked]);
 
   const handleUserSelect = (userId) => {
-    setSelectedUser(userId); // 更新选中用户
+    setSelectedUser(userId); // update selected user
   };
 
   const handleSendMessage = async (e) => {
@@ -197,7 +197,7 @@ const ChatPage = () => {
         content: newMessage.trim(),
       });
 
-        setNewMessage(""); // 清空输入框
+      setNewMessage(""); // clear input box
 
     } catch (error) {
       console.error("Error sending message:", error);
@@ -215,7 +215,7 @@ const ChatPage = () => {
 
   return (
     <div className="flex h-screen bg-gray-100">
-      {/* 顶部导航栏 */}
+      {/* top navigation bar */}
       <div className="fixed top-0 left-0 right-0 bg-white shadow z-50">
         <div className="max-w-6xl mx-auto flex items-center justify-between px-4 py-3">
           <h1 
@@ -261,7 +261,7 @@ const ChatPage = () => {
         </div>
       </div>
 
-      {/* 左侧会话列表 */}
+      {/* left conversation list */}
       <div className="w-1/3 bg-white border-r flex flex-col mt-16">
         <div className="p-4 border-b flex items-center">
           <button
@@ -271,7 +271,7 @@ const ChatPage = () => {
             ← Back
           </button>
           <h2 className="text-xl font-semibold">Messages</h2>
-          {/* 添加调试信息 */}
+          {/* add debug information */}
           <div className="text-sm text-gray-500 ml-4">
             Total conversations: {conversations.length}
           </div>
@@ -319,7 +319,7 @@ const ChatPage = () => {
         </div>
       </div>
 
-      {/* 右侧聊天区域 */}
+      {/* right chat area */}
       <div className="flex-1 flex flex-col">
         {loading.conversations ? (
           <div className="flex items-center justify-center h-full text-gray-500">
@@ -343,7 +343,7 @@ const ChatPage = () => {
           </div>
         ) : (
           <>
-            {/* 聊天头部 */}
+            {/* chat header */}
             <div className="p-4 border-b bg-white">
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
@@ -355,7 +355,7 @@ const ChatPage = () => {
               </div>
             </div>
 
-            {/* 消息区域 */}
+            {/* message area */}
             <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
               {error && (
                 <div className="text-red-500 text-center mb-4">{error}</div>
@@ -387,7 +387,7 @@ const ChatPage = () => {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* 输入区域 */}
+            {/* input area */}
             <div className="p-4 bg-white border-t">
               <form onSubmit={handleSendMessage} className="flex">
                 <input

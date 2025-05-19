@@ -23,7 +23,7 @@ const PropertyDetail = () => {
   const [mapCenter, setMapCenter] = useState(null);
 
   useEffect(() => {
-    // 从 localStorage 获取用户类型
+    // get user type from local storage 
     const userTypeFromStorage = localStorage.getItem("userType");
     setUserType(userTypeFromStorage);
 
@@ -41,7 +41,7 @@ const PropertyDetail = () => {
         setProperty(propertyData);
         setImages(imagesData);
         
-        // 设置地图中心点
+        // set map center point
         if (propertyData.latitude && propertyData.longitude) {
           setMapCenter({
             lat: parseFloat(propertyData.latitude),
@@ -112,7 +112,7 @@ const PropertyDetail = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 py-8">
-      {/* 顶部导航栏 */}
+      {/* top navigation bar */}
       <div className="fixed top-0 left-0 right-0 bg-white shadow z-50">
         <div className="max-w-6xl mx-auto flex items-center justify-between px-4 py-3">
           <h1 
@@ -137,10 +137,10 @@ const PropertyDetail = () => {
         </div>
       </div>
 
-      {/* 页面内容 */}
+      {/* page content */}
       <div className="max-w-6xl mx-auto px-4 pt-20">
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-          {/* 图片展示区域 */}
+          {/* image display area */}
           <div className="relative h-96">
             {images.length > 0 ? (
               <>
@@ -173,7 +173,7 @@ const PropertyDetail = () => {
             )}
           </div>
 
-          {/* 缩略图区域 */}
+          {/* thumbnail area */}
           {images.length > 1 && (
             <div className="flex overflow-x-auto p-4 gap-4">
               {images.map((image, index) => (
@@ -190,7 +190,7 @@ const PropertyDetail = () => {
             </div>
           )}
 
-          {/* 房产信息 */}
+          {/* property information */}
           <div className="p-6">
             <div className="flex justify-between items-start">
               <div>
@@ -202,7 +202,7 @@ const PropertyDetail = () => {
               </div>
             </div>
 
-            {/* 基本信息 */}
+            {/* basic information */}
             <div className="mt-6 grid grid-cols-3 gap-4">
               <div className="border rounded-lg p-4">
                 <h3 className="text-sm font-medium text-gray-500">Bedrooms</h3>
@@ -224,7 +224,7 @@ const PropertyDetail = () => {
               </div>
             </div>
 
-            {/* 详细描述 */}
+            {/* detailed description */}
             <div className="mt-6">
               <h2 className="text-lg font-semibold text-black">Description</h2>
               <p className="mt-2 text-gray-800 whitespace-pre-line">
@@ -232,7 +232,7 @@ const PropertyDetail = () => {
               </p>
             </div>
 
-            {/* 其他特性 */}
+            {/* other features */}
             {property.labels && property.labels.length > 0 && (
               <div className="mt-6">
                 <h2 className="text-lg font-semibold text-black">Features</h2>
@@ -249,7 +249,7 @@ const PropertyDetail = () => {
               </div>
             )}
 
-            {/* 位置信息和地图 */}
+            {/* location information and map */}
             <div className="mt-6">
               <h2 className="text-lg font-semibold text-black mb-4">Location</h2>
               <p className="text-gray-800 mb-4">
@@ -274,7 +274,7 @@ const PropertyDetail = () => {
               )}
             </div>
 
-            {/* 房东信息 */}
+            {/* landlord information */}
             <div className="mt-8 border-t pt-6">
               <h2 className="text-lg font-semibold text-black mb-4">Landlord Information</h2>
               <div className="bg-gray-50 rounded-lg p-6">

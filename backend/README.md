@@ -28,6 +28,7 @@ Backend service for uninest - A Personalized Housing Recommendation System near 
 - **Cloud Services**:
   - AWS S3 for image storage
   - AWS EC2 for deployment
+  - AWS RDS for data storage
 
 ## Project Structure
 
@@ -127,8 +128,3 @@ pytest
 
 The backend is deployed on AWS EC2
 
-## Contributors
-
-- Chia Hui Yen (huiyenc) - main
-- Mathilda Chen (liyingch)
-- Yiqi Cheng (yiqic2)

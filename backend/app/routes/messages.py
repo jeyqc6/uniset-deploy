@@ -44,7 +44,7 @@ async def send_message(
     db.commit()
     db.refresh(db_message)
 
-    # 推送到 WebSocket
+    #send to WebSocket
     room_id = f"{min(current_user.id, message.receiver_id)}_{max(current_user.id, message.receiver_id)}"
     msg_data = {
         "content": db_message.content,

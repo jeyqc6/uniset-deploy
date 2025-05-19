@@ -88,7 +88,7 @@ const RecommendationPage = () => {
     // setActiveMarker(markerId === activeMarker ? null : markerId);
     setSelectedProperty(markerId === activeMarker ? null : markerId);
     
-    // 如果选中了房产，将其滚动到视图中
+    // if a property is selected, scroll it into view
     if (markerId !== activeMarker) {
       const element = document.getElementById(`property-${markerId}`);
       if (element) {
@@ -145,7 +145,7 @@ const RecommendationPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
-      {/* 顶部导航栏 */}
+      {/* top navigation bar */}
       <div className="fixed top-0 left-0 right-0 bg-white shadow z-50">
         <div className="max-w-6xl mx-auto flex items-center justify-between px-4 py-3">
           <h1 className="text-2xl font-bold text-black">UniNest</h1>
@@ -186,9 +186,9 @@ const RecommendationPage = () => {
         </div>
       </div>
 
-      {/* 主内容区域 */}
+      {/* main content area */}
       <div className="flex flex-1 pt-[60px] ">
-        {/* 左侧地图 */}
+        {/* left map */}
         <div className="flex-1 h-[calc(100vh-60px)] sticky top-[60px]">
           <GoogleMap
             mapContainerStyle={containerStyle}
@@ -211,8 +211,8 @@ const RecommendationPage = () => {
                 }}
                 onClick={() => handleActiveMarker(property.id)}
                 label={{
-                  text: `$${property.price}\n${property.match_score}%`, // 显示房价和匹配分数
-                  className: "custom-marker-label", // 自定义样式类
+                  text: `$${property.price}\n${property.match_score}%`, // show price and match score
+                  className: "custom-marker-label", // custom style class
                 }}
               >
                 {activeMarker === property.id && (
@@ -238,7 +238,7 @@ const RecommendationPage = () => {
           </GoogleMap>
         </div>
 
-        {/* 右侧房产列表 */}
+        {/* right property list */}
         <div className="w-[400px] bg-white border-l flex flex-col overflow-y-auto">
           <div className="p-4 border-b">
             <h2 className="text-lg font-semibold">Recommended Properties</h2>
@@ -286,7 +286,7 @@ const RecommendationPage = () => {
         </div>
       </div>
 
-      {/* 底部推荐室友头像 */}
+      {/* bottom recommendation roommate avatar */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4 z-50">
         <h2 className="text-lg font-semibold mb-2 text-center">
           They are also looking for houses...
