@@ -2,7 +2,7 @@
 # UniNest: Real-Time Roommate Matching & Chat Platform
 
 **UniNest** is a full-stack real-time communication system designed for roommate discovery and housing communities. Built with **FastAPI** (backend), **PostgreSQL** (database), and **React** (frontend via Vite), it supports user authentication, chat rooms, WebSocket-based messaging, and AI-enhanced persona analysis.
-[Watch the demo video on YouTube](https://www.youtube.com/watch?v=YOUR_VIDEO_ID)
+[Watch the demo video on YouTube](https://youtu.be/MMJS6jjMA6g)
 
 ---
 
