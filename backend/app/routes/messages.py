@@ -53,8 +53,24 @@ async def send_message(
         "timestamp": db_message.timestamp.isoformat(),
         "id": db_message.id,
     }
-    for ws in active_connections.get(room_id, []):
-        await ws.send_text(json.dumps(msg_data))
+    
+    # Send to all active connections in the room
+    if room_id in active_connections:
+        disconnected_ws = []
+        for ws in active_connections[room_id]:
+            try:
+                await ws.send_text(json.dumps(msg_data))
+                print(f"Message sent to WebSocket connection in room {room_id}")
+            except Exception as e:
+                print(f"Error sending message to WebSocket: {str(e)}")
+                disconnected_ws.append(ws)
+        
+        # Clean up disconnected WebSockets
+        for ws in disconnected_ws:
+            if ws in active_connections[room_id]:
+                active_connections[room_id].remove(ws)
+        if not active_connections[room_id]:
+            del active_connections[room_id]
 
     return db_message
 
@@ -206,7 +222,6 @@ async def get_user_from_token(token: str, db):
 
 @router.websocket("/ws/{other_user_id}")
 async def websocket_endpoint(websocket: WebSocket, other_user_id: int, db: Session = Depends(get_db)):
-    
     print("WebSocket endpoint called")
     await websocket.accept()
     token = websocket.query_params.get("token")
@@ -222,6 +237,20 @@ async def websocket_endpoint(websocket: WebSocket, other_user_id: int, db: Sessi
     active_connections[room_id].append(websocket)
     try:
         while True:
-            await websocket.receive_text()  
-    except WebSocketDisconnect:
-        active_connections[room_id].remove(websocket)
+            try:
+                # Keep the connection alive and handle any incoming messages
+                data = await websocket.receive_text()
+                print(f"Received message from {user.email}: {data}")
+            except WebSocketDisconnect:
+                print(f"WebSocket disconnected for user {user.email}")
+                break
+            except Exception as e:
+                print(f"Error in WebSocket connection for user {user.email}: {str(e)}")
+                break
+    finally:
+        # Clean up the connection
+        if room_id in active_connections:
+            if websocket in active_connections[room_id]:
+                active_connections[room_id].remove(websocket)
+            if not active_connections[room_id]:
+                del active_connections[room_id]
