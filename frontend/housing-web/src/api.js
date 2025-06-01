@@ -29,7 +29,7 @@ api.interceptors.response.use(
       // redirect to login page
       window.location.href = "/login";
     }
-    // 其他错误继续抛出
+    // other errors continue to throw
     return Promise.reject(error);
   }
 );

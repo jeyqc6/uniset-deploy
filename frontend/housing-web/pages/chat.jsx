@@ -1,26 +1,27 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getMessages, sendMessage, getUserDetails } from "../src/api";
+import WebSocketManager from "../src/util/WebSocketManager";
 
 
 const ChatPage = () => {
   const { userId: otherUserId } = useParams();
-  const currentUserId = localStorage.getItem("user_id"); // 从登录信息获取
+  const currentUserId = localStorage.getItem("user_id"); // get current user id
   const messagesEndRef = useRef(null);
-  // 计算房间号
+  // calculate room id
   const roomId = currentUserId < otherUserId
     ? `${currentUserId}_${otherUserId}`
     : `${otherUserId}_${currentUserId}`;
 
   const navigate = useNavigate();
-  const [messages, setMessages] = useState([]); // 消息列表
-  const [newMessage, setNewMessage] = useState(""); // 新消息内容
+  const [messages, setMessages] = useState([]); // message list
+  const [newMessage, setNewMessage] = useState(""); // new message content
   const [loading, setLoading] = useState({
     messages: true,
     userDetails: true,
-  }); // 加载状态
-  const [error, setError] = useState(null); // 错误信息
-  const [userDetails, setUserDetails] = useState(null); // 聊天对象的用户信息
+  }); // loading status
+  const [error, setError] = useState(null); // error message
+  const [userDetails, setUserDetails] = useState(null); // user details
   const [ws, setWS] = useState(null);
   const wsRef = useRef(null);
 
@@ -29,7 +30,10 @@ const ChatPage = () => {
     ? rawToken.slice(7).trim()
     : rawToken;
 
-  // 加载聊天对象的用户信息
+  const [connectionStatus, setConnectionStatus] = useState('disconnected');
+  const wsManager = useRef(null);
+
+  // load user details
   useEffect(() => {
     const fetchUserDetails = async () => {
       if (!otherUserId) {
@@ -53,7 +57,7 @@ const ChatPage = () => {
     fetchUserDetails();
   }, [otherUserId]);
 
-  // 加载消息列表
+  // load message list
   useEffect(() => {
     const fetchMessages = async () => {
       if (!otherUserId) {
@@ -85,32 +89,98 @@ const ChatPage = () => {
     fetchMessages();
   }, [otherUserId]);
 
+  // useEffect(() => {
+  //   if (!wsRef.current || wsRef.current.readyState === WebSocket.CLOSED) {
+
+  //     wsRef.current = new WebSocket(`ws://localhost:8000/api/v1/messages/ws/${otherUserId}?token=${token}`);
+  //     setWS(wsRef.current);
+
+  //     wsRef.current.onopen = () => console.log("WebSocket opened");
+  //     wsRef.current.onmessage = (event) => {
+  //       try {
+  //         const msg = JSON.parse(event.data);
+  //         setMessages((prev) => [...prev, msg]);
+  //       } catch {
+  //         setMessages((prev) => [...prev, event.data]);
+  //       }
+  //     };
+  //     wsRef.current.onerror = (e) => console.error("WebSocket error", e);
+  //     wsRef.current.onclose = (e) => console.log("WebSocket closed", e);
+  //   }
+
+  //   return () => {
+  //     // close only when connection is OPEN
+  //     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+  //       wsRef.current.close();
+  //     }
+  //   };
+  // }, [otherUserId, token]);
+
   useEffect(() => {
-    if (!wsRef.current || wsRef.current.readyState === WebSocket.CLOSED) {
+    console.log('Initializing WebSocket connection...');
+    console.log('Current user ID:', currentUserId);
+    console.log('Other user ID:', otherUserId);
+    console.log('Token:', token);
 
-      wsRef.current = new WebSocket(`ws://localhost:8000/api/v1/messages/ws/${otherUserId}?token=${token}`);
-      setWS(wsRef.current);
+    const wsUrl = `ws://localhost:8000/api/v1/messages/ws/${otherUserId}?token=${token}`;
+    console.log('WebSocket URL:', wsUrl);
 
-      wsRef.current.onopen = () => console.log("WebSocket opened");
-      wsRef.current.onmessage = (event) => {
-        try {
-          const msg = JSON.parse(event.data);
-          setMessages((prev) => [...prev, msg]);
-        } catch {
-          setMessages((prev) => [...prev, event.data]);
+    wsManager.current = new WebSocketManager(wsUrl, {
+      maxRetries: 3,
+      initialRetryDelay: 1000,
+      maxRetryDelay: 3000,
+    });
+
+    wsManager.current.on('open', () => {
+      console.log('WebSocket connection opened');
+      setConnectionStatus('connected');
+    });
+
+    wsManager.current.on('close', (event) => {
+      console.log('WebSocket connection closed:', event);
+      setConnectionStatus('disconnected');
+    });
+
+    wsManager.current.on('error', (error) => {
+      console.error('WebSocket error:', error);
+      setConnectionStatus('error');
+      setError('Connection error. Attempting to reconnect...');
+    });
+
+    wsManager.current.on('message', (data) => {
+      console.log('Received WebSocket message:', data);
+      setMessages((prev) => {
+        // Check if message already exists to avoid duplicates
+        const messageExists = prev.some(msg => msg.id === data.id);
+        if (messageExists) {
+          console.log('Message already exists, skipping:', data.id);
+          return prev;
         }
-      };
-      wsRef.current.onerror = (e) => console.error("WebSocket error", e);
-      wsRef.current.onclose = (e) => console.log("WebSocket closed", e);
-    }
+        console.log('Adding new message:', data.id);
+        return [...prev, data];
+      });
+    });
+
+    wsManager.current.on('maxRetriesReached', () => {
+      console.log('Max retries reached for WebSocket connection');
+      setError('Failed to connect after multiple attempts. Please try refresh the page.')
+    });
+
+    console.log('Connecting to WebSocket...');
+    wsManager.current.connect();
+
+    //for server to test
+    // window.testWsManager = wsManager.current;
 
     return () => {
-      // 只在连接是 OPEN 状态时关闭
-      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-        wsRef.current.close();
+      console.log('Cleaning up WebSocket connection...');
+      if (wsManager.current) {
+        wsManager.current.close();
+        wsManager.current = null;
       }
     };
   }, [otherUserId, token]);
+
 
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -118,7 +188,7 @@ const ChatPage = () => {
     }
   }, [messages]);
 
-  // 发送消息
+  // send message
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!newMessage.trim()) return;
@@ -129,19 +199,14 @@ const ChatPage = () => {
         receiver_id: parseInt(otherUserId),
       });
       setNewMessage("");
-      // 不需要 setMessages，等 WebSocket 收到推送再更新 UI
+      // no need to setMessages, wait for WebSocket to receive push and update UI
     } catch (error) {
       setError("Failed to send message. Please try again.");
     }
   };
 
-  const sendWebSocketMessage = (e) => {
-    e.preventDefault();
-    if (ws && newMessage) {
-      ws.send(newMessage);
-      setNewMessage("");
-    }
-  };
+
+
 
   if (loading.messages || loading.userDetails) {
     return (
@@ -153,7 +218,7 @@ const ChatPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* 顶部导航栏 */}
+      {/* top navigation bar */}
       <div className="fixed top-0 left-0 right-0 bg-white shadow z-50">
         <div className="max-w-6xl mx-auto flex items-center justify-between px-4 py-3">
           <h1 
@@ -236,7 +301,7 @@ const ChatPage = () => {
               {messages.length > 0 ? (
                 messages.map((message, index) => (
                   <div key={index} className="flex flex-col">
-                    {/* 用户名 */}
+                    {/* username */}
                     <div
                       className={`mb-1 text-sm ${
                         message.sender_id === parseInt(otherUserId)
@@ -249,7 +314,7 @@ const ChatPage = () => {
                         : "You"}
                     </div>
 
-                    {/* 消息气泡 */}
+                    {/* message bubble */}
                     <div
                       className={`flex ${
                         message.sender_id === parseInt(otherUserId) ? "justify-start" : "justify-end"
@@ -275,7 +340,7 @@ const ChatPage = () => {
                       </div>
                     </div>
 
-                    {/* 时间戳 */}
+                    {/* timestamp */}
                     <div
                       className={`mt-1 text-xs ${
                         message.sender_id === parseInt(otherUserId) ? "text-left" : "text-right"
